@@ -1,0 +1,118 @@
+#!/usr/bin/env ruby
+
+$:.unshift File.dirname(__FILE__)
+require "yajl"
+require "curb"
+require "yaml"
+require 'net/ssh'
+require 'net/scp'
+require 'fileutils'
+require 'terminal-color'
+require 'uuidtools'
+
+require 'rabbitmq_sqlite.rb'
+
+PACKAGE_DIR = '/var/vcap/data/density_test'
+TMP_CONFIG_DIR = '/tmp/density_tmp'
+LOCAL_OUTPUT = File.join(File.dirname(__FILE__), "output")
+
+$config = YAML.load_file(File.expand_path("../config.yml", __FILE__))
+$package_config = YAML.load_file(File.expand_path("../package_config.yml", __FILE__))
+$ssh_user = $config["ssh"]["user"]
+$ssh_pass = $config["ssh"]["pass"]
+FileUtils.mkdir_p(LOCAL_OUTPUT)
+
+def load_vms
+  list_file = File.expand_path("../.dea_list", __FILE__)
+  unless File.exist?(list_file)
+    bosh_config = YAML.load_file(File.expand_path("~/.bosh_config"))
+    target = bosh_config["target_name"]
+    puts "Getting VMs info...".green
+    `bosh vms #{target}|grep dea|awk '{print $8}' > .dea_list`
+  end
+  ret = []
+  File.open(list_file).lines do |line|
+    ret << line.strip
+  end
+  ret
+end
+$vms = load_vms
+
+def upload
+  $vms.each do |ip|
+    puts "Uploading to #{ip}"
+    Net::SSH.start(ip, $ssh_user, {:password => $ssh_pass}) do |ssh|
+      ssh.exec!("mkdir -p #{TMP_CONFIG_DIR}")
+      ssh.exec!("mkdir -p #{$config['output_dir']}")
+      ssh.scp.upload!(File.expand_path("../package", __FILE__), PACKAGE_DIR, :recursive => true)
+    end
+  end
+end
+
+def pick_load(ind, total, app_load)
+  app_load.each do |type, setting|
+    if ind <= total * setting["ratio"].to_i / 100
+      return [type, setting]
+    end
+    ind -= total * setting["ratio"].to_i / 100
+  end
+  return nil
+end
+
+def hit_app(cmd)
+  app_load = $config["load"]
+  creds = load_sqlite($config["local_db"], $config["node_ip"])
+  count = 0
+  creds.each do |cred|
+    count += 1
+    type, load_setting = pick_load(count, creds.size, app_load)
+    break unless type
+
+    $package_config["load_setting"] = load_setting
+    $package_config["output_dir"] = $config["output_dir"]
+    $package_config["credential"] = cred
+    ip = $vms[(count - 1) % $vms.size]
+    pconfig_path = File.join(TMP_CONFIG_DIR, UUIDTools::UUID.random_create.to_s + ".yml")
+
+    puts "Starting #{type} app #{count} on #{ip}"
+    Net::SSH.start(ip, $ssh_user, {:password => $ssh_pass}) do |ssh|
+      ssh.exec!("echo '#{$package_config.to_yaml}' > #{pconfig_path}")
+      ssh.exec!("BUNDLE_GEMFILE=#{PACKAGE_DIR}/package/Gemfile /var/vcap/bosh/bin/bundle exec #{PACKAGE_DIR}/package/app.rb -c #{pconfig_path} #{cmd}")
+    end
+  end
+end
+
+def start
+  hit_app("start")
+end
+
+def preload
+  hit_app("preload")
+end
+
+def stop
+  $vms.each do |ip|
+    puts "Stopping on #{ip}"
+    Net::SSH.start(ip, $ssh_user, {:password => $ssh_pass}) do |ssh|
+      ssh.exec!("cd #{PACKAGE_DIR}/package && /var/vcap/bosh/bin/bundle exec ./app.rb stop")
+      ssh.scp.download!("#{$config['output_dir']}", File.join(LOCAL_OUTPUT, ip), :recursive => true)
+    end
+  end
+end
+
+def clean(delete_package=false)
+  $vms.each do |ip|
+    puts "Cleaning on #{ip}"
+    Net::SSH.start(ip, $ssh_user, {:password => $ssh_pass}) do |ssh|
+      ssh.exec!("rm -rf #{TMP_CONFIG_DIR}/*")
+      ssh.exec!("rm -rf #{$config['output_dir']}/*")
+      ssh.exec!("rm -rf #{PACKAGE_DIR}/*") if delete_package
+    end
+  end
+end
+
+def clean_all
+  clean(true)
+end
+
+send(ARGV[0].to_sym)

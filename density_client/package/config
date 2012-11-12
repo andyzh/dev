@@ -1,0 +1,30 @@
+java: /usr/bin
+
+preload_size: 100000000
+
+load_setting:
+  ratio: 10
+  p_num: 10
+  c_num: 10
+  ratelimit: 20
+  maxsize: 100
+  minsize: 10
+
+credential:
+  name: xxxx
+  url: amqp://guest:guest@localhost:5672
+
+output_dir: /tmp/output
+
+scenarios:
+- name: no-ack
+  ack: no
+  persistent: no
+  exchange_type: fanout
+  time: 10
+
+- name: test2
+  ack: no
+  persistent: yes
+  exchange_type: topic
+  time: 10

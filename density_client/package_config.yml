@@ -1,0 +1,176 @@
+java: /var/vcap/packages/dea_jvm/bin
+
+preload_size: 10000000
+
+scenarios:
+- name: direct
+  ack: no
+  persistent: no
+  exchange_type: direct
+  qos: 1
+  time: 30
+
+- name: fanout
+  ack: no
+  persistent: no
+  exchange_type: fanout
+  qos: 1
+  time: 30
+
+- name: topic
+  ack: no
+  persistent: no
+  exchange_type: topic
+  qos: 1
+  time: 30
+
+- name: ack-direct
+  ack: yes
+  persistent: no
+  exchange_type: direct
+  qos: 1
+  time: 30
+
+- name: ack-fanout
+  ack: yes
+  persistent: no
+  exchange_type: fanout
+  qos: 1
+  time: 30
+
+- name: ack-topic
+  ack: yes
+  persistent: no
+  exchange_type: topic
+  qos: 1
+  time: 30
+
+#- name: per-direct
+#  ack: no
+#  persistent: yes
+#  exchange_type: direct
+#  qos: 1
+#  time: 30
+#
+#- name: per-fanout
+#  ack: no
+#  persistent: yes
+#  exchange_type: fanout
+#  qos: 1
+#  time: 30
+#
+#- name: per-topic
+#  ack: no
+#  persistent: yes
+#  exchange_type: topic
+#  qos: 1
+#  time: 30
+#
+#- name: per-ack-direct
+#  ack: yes
+#  persistent: yes
+#  exchange_type: direct
+#  qos: 1
+#  time: 30
+#
+#- name: per-ack-fanout
+#  ack: yes
+#  persistent: yes
+#  exchange_type: fanout
+#  qos: 1
+#  time: 30
+#
+#- name: per-ack-topic
+#  ack: yes
+#  persistent: yes
+#  exchange_type: topic
+#  qos: 1
+#  time: 30
+#
+- name: direct
+  ack: no
+  persistent: no
+  exchange_type: direct
+  qos: 5
+  time: 30
+
+- name: fanout
+  ack: no
+  persistent: no
+  exchange_type: fanout
+  qos: 5
+  time: 30
+
+- name: topic
+  ack: no
+  persistent: no
+  exchange_type: topic
+  qos: 5
+  time: 30
+
+- name: ack-direct
+  ack: yes
+  persistent: no
+  exchange_type: direct
+  qos: 5
+  time: 30
+
+- name: ack-fanout
+  ack: yes
+  persistent: no
+  exchange_type: fanout
+  qos: 5
+  time: 30
+
+- name: ack-topic
+  ack: yes
+  persistent: no
+  exchange_type: topic
+  qos: 5
+  time: 30
+
+#- name: per-direct
+#  ack: no
+#  persistent: yes
+#  exchange_type: direct
+#  qos: 5
+#  time: 30
+#
+#- name: per-fanout
+#  ack: no
+#  persistent: yes
+#  exchange_type: fanout
+#  qos: 5
+#  time: 30
+#
+#- name: per-topic
+#  ack: no
+#  persistent: yes
+#  exchange_type: topic
+#  qos: 5
+#  time: 30
+#
+#- name: per-ack-direct
+#  ack: yes
+#  persistent: yes
+#  exchange_type: direct
+#  qos: 5
+#  time: 30
+#
+#- name: per-ack-fanout
+#  ack: yes
+#  persistent: yes
+#  exchange_type: fanout
+#  qos: 5
+#  time: 30
+#
+#- name: per-ack-topic
+#  ack: yes
+#  persistent: yes
+#  exchange_type: topic
+#  qos: 5
+#  time: 30
+#
+load_setting: dummy
+credential: dummy
+output_dir: dummy

@@ -1,0 +1,30 @@
+ssh:
+  user: root
+  pass: 11111
+
+load:
+  heavy:
+    ratio: 20
+    p_num: 15
+    c_num: 15
+    ratelimit: 20
+    maxsize: 200
+    minsize: 100
+  medium:
+    ratio: 20
+    p_num: 10
+    c_num: 10
+    ratelimit: 10
+    maxsize: 100
+    minsize: 50
+  lite:
+    ratio: 30
+    p_num: 5
+    c_num: 5
+    ratelimit: 2
+    maxsize: 100
+    minsize: 10
+
+output_dir: /var/vcap/data/density_test/logs
+local_db: sqlite:/home/dev/mix/density_client/rabbit_node.db
+node_ip: 1.1.1.1
