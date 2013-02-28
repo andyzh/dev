@@ -1,0 +1,13 @@
+source "http://rubygems.org"
+
+gem "nats"
+gem "data_mapper", "~> 1.1.0"
+gem "do_sqlite3"
+gem "dm-sqlite-adapter"
+gem "uuidtools"
+gem "yajl-ruby"
+gem "curb"
+gem "net-ssh"
+gem "net-scp"
+gem "eventmachine", :git => 'git://github.com/cloudfoundry/eventmachine.git', :branch => 'release-0.12.11-cf'
+gem "terminal-color"

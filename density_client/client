@@ -8,7 +8,10 @@ require 'net/ssh'
 require 'net/scp'
 require 'fileutils'
 require 'terminal-color'
+require 'eventmachine'
 require 'uuidtools'
+require 'nats/client'
+require 'fiber'
 
 require 'rabbitmq_sqlite.rb'
 
@@ -113,6 +116,32 @@ end
 
 def clean_all
   clean(true)
+end
+
+def create_service
+  EM.run do
+    Fiber.new do
+      nats = NATS.connect(:uri => $config["nats_url"])
+      $config["service_num"].to_i.times do |i|
+        fb = Fiber.current
+        nats.request($config["nats_channel"], Yajl::Encoder.encode("plan" => $config["plan"], "version" => $config["version"])) do |msg|
+          response = Yajl::Parser.parse(msg)
+          puts "Provision result: #{response}"
+          if response['success']
+            puts "Provision success".green
+          else
+            puts "Provision failed".red
+          end
+          fb.resume
+        end
+        Fiber.yield
+      end
+      EM.stop
+    end.resume
+  end
+  Net::SSH.start($config["node_ip"], $ssh_user, {:password => $ssh_pass}) do |ssh|
+    ssh.scp.download!($config['rabbit_db_file'], $config["local_db"].split(':')[1])
+  end
 end
 
 send(ARGV[0].to_sym)

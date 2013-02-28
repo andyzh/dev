@@ -1,6 +1,6 @@
 ssh:
   user: root
-  pass: 11111
+  pass: ca$hc0w
 
 load:
   heavy:
@@ -26,5 +26,11 @@ load:
     minsize: 10
 
 output_dir: /var/vcap/data/density_test/logs
-local_db: sqlite:/home/dev/mix/density_client/rabbit_node.db
-node_ip: 1.1.1.1
+local_db: sqlite:/home/gaoyin/git/dev/density_client/new_db.db
+node_ip: 10.42.122.120
+plan: "100"
+version: "2.8"
+service_num: 3
+nats_url: nats://nats:Z2b3ij3122@10.42.122.41:4222
+nats_channel: RMQaaS.provision.rabbit_node_100_0
+rabbit_db_file: /var/vcap/store/rabbit/rabbit_node.db
